@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suzu vs The Hats</title>
+  <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="png" href="icon.png" />
+
+</head>
+<body>
+  <div id="game-container">
+    <div id="intro-screen">
+      <div id="title-container">
+        <h1>🎉 HAPPY 21ST BIRTHDAY SUNAINA 🎉</h1>
+        <h2>Welcome to <span style="color: var(--primary-color);">Suzu vs The Hats</span></h2>
+      </div>
+
+
+      <button id="start-btn">Click to Practice Controls</button>
+    </div>
+
+    <!-- Popup -->
+    <div id="popup" style="display: none;">
+      <div id="popup-content" style="
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 0 25px var(--shadow-color);
+        max-width: 400px;
+      ">
+        <h2 style="color: var(--primary-color);">😏 Really?</h2>
+        <p>I thought you were a gamer... anyways, use the arrow keys!</p>
+        <button id="sorry-btn">Sorry I’m a Dumbass</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('start-btn');
+    const popup = document.getElementById('popup');
+    const sorryBtn = document.getElementById('sorry-btn');
+
+    startBtn.addEventListener('click', () => {
+      popup.style.display = 'flex';
+      popup.style.position = 'absolute';
+      popup.style.width = '100%';
+      popup.style.height = '100%';
+      popup.style.justifyContent = 'center';
+      popup.style.alignItems = 'center';
+      popup.style.background = 'rgba(255, 182, 193, 0.8)';
+      popup.style.zIndex = '20';
+    });
+
+    sorryBtn.addEventListener('click', () => {
+      // move to level 1
+      window.location.href = "level1.html";
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Suzu vs The Hats | Level 4: Magical Choice</title>
+  <link rel="icon" type="png" href="icon.png" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    #player {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background-image: url('sunaina.png');
+      background-size: cover;
+      background-position: center;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .hat {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      background-image: url('hat.png');
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 0 8px #ff69b4cc;
+      transition: transform 0.2s ease;
+    }
+    .hat:hover {
+      transform: scale(1.1);
+    }
+
+    #scoreboard {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #800040;
+      text-shadow: 1px 1px #ffb6c1;
+      user-select: none;
+      z-index: 12;
+      padding: 0 10px;
+      background: #ffe0f0cc;
+      border-radius: 8px;
+    }
+
+    #win-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      color: #d1006c;
+      text-shadow: 2px 2px #ffb6c1;
+      display: none;
+      z-index: 15;
+      background: white;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #ff4d94aa;
+      user-select: none;
+      text-align: center;
+    }
+
+    #next-level-btn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 20px;
+      background: #ff3d84;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #next-level-btn:hover {
+      background: #ff69b4;
+    }
+
+    #intro-screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #ffb6c1cc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      color: #800040;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #intro-screen h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.3em;
+      text-shadow: 2px 2px #ffa6c1;
+    }
+    #intro-screen p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5em;
+    }
+    #start-btn {
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+      padding: 12px 30px;
+      font-size: 1.3rem;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      background: #ff3d84;
+    }
+    #start-btn:hover {
+      background: #ff69b4;
+    }
+
+    /* Popup Modal Styles */
+    #popup-modal {
+      display: none;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #ff4d94cc;
+      padding: 20px;
+      width: 350px;
+      max-width: 90vw;
+      z-index: 100;
+      text-align: center;
+      user-select: none;
+    }
+    #popup-modal img {
+      width: 300px;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 15px #ff69b4cc;
+    }
+    #popup-modal p {
+      font-size: 1.2rem;
+      color: #d1006c;
+      text-shadow: 1px 1px #ffb6c1;
+      margin-bottom: 20px;
+    }
+    #popup-close-btn {
+      background: #ff3d84;
+      border: none;
+      color: white;
+      padding: 10px 25px;
+      font-size: 1.1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #popup-close-btn:hover {
+      background: #ff69b4;
+    }
+
+    /* Dim background behind popup */
+    #popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 90;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container" style="position:relative; width:95vw; height:90vh; margin:30px auto; background:#fff0f5; border:4px solid #ff69b4; border-radius:12px; overflow:hidden;">
+
+    <div id="intro-screen">
+      <h1>Level 4: MAGICAL CHOICE!</h1>
+      <button id="start-btn">Start</button>
+    </div>
+
+    <div id="scoreboard">Which is the magical birthday hat?</div>
+
+    <div id="win-message">
+      <div>You win! 🎉</div>
+      <button id="next-level-btn">Next Level</button>
+    </div>
+  </div>
+
+  <!-- Popup Modal & Overlay -->
+  <div id="popup-overlay"></div>
+  <div id="popup-modal">
+    <img id="popup-image" src="" alt="Hat related photo" />
+    <p id="popup-message"></p>
+    <button id="popup-close-btn">Close</button>
+  </div>
+
+  <audio id="bg-music" loop>
+    <source src="bg-music.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const gameContainer = document.getElementById('game-container');
+    const gameWidth = gameContainer.clientWidth;
+    const gameHeight = gameContainer.clientHeight;
+
+    const scoreboard = document.getElementById('scoreboard');
+    const winMessage = document.getElementById('win-message');
+    const nextLevelBtn = document.getElementById('next-level-btn');
+    const bgMusic = document.getElementById('bg-music');
+    const introScreen = document.getElementById('intro-screen');
+    const startBtn = document.getElementById('start-btn');
+
+    // Popup elements
+    const popupModal = document.getElementById('popup-modal');
+    const popupOverlay = document.getElementById('popup-overlay');
+    const popupImage = document.getElementById('popup-image');
+    const popupMessage = document.getElementById('popup-message');
+    const popupCloseBtn = document.getElementById('popup-close-btn');
+
+    let hats = [];
+    const totalHats = 5;
+    let gameActive = false;
+
+    // Randomly choose one hat to be magical
+    let magicalHatIndex = Math.floor(Math.random() * totalHats);
+
+    // Sunaina themed messages for wrong hats
+    const sunainaMessages = [
+      "Waiting for you to choose the right one.",
+      "NO! Emma just take a nap now",
+      "No? fr?",
+      "UGH!"
+    ];
+
+    // Photos for wrong hats - replace these with your actual images
+    const sunainaPhotos = [
+      'sunaina_msg1.jpg',
+      'sunaina_msg2.jpg',
+      'sunaina_msg3.jpg',
+      'sunaina_msg4.jpg'
+    ];
+
+    // Magical hat winning photo - replace with your actual image
+    const magicalHatPhoto = 'magical_hat.jpg';
+
+    // Create hats and place them horizontally spaced
+    function createHats() {
+      hats = [];
+      const spacing = (gameWidth - totalHats * 70) / (totalHats + 1);
+      for(let i = 0; i < totalHats; i++){
+        const hat = document.createElement('div');
+        hat.classList.add('hat');
+        // Position hats evenly spaced horizontally, near middle vertical
+        hat.style.top = (gameHeight / 2 - 35) + 'px';
+        hat.style.left = spacing + i * (70 + spacing) + 'px';
+
+        // Add click listener
+        hat.addEventListener('click', () => {
+          if(!gameActive) return;
+
+          if(i === magicalHatIndex){
+            // Magical hat clicked - show win message and popup with magical photo
+            winMessage.style.display = "block";
+            nextLevelBtn.style.display = "inline-block";
+            gameActive = false;
+            bgMusic.pause();
+
+            showPopup(magicalHatPhoto, "You found the magical hat! You win! 🎉");
+          } else {
+            // Wrong hat clicked - show message and popup with sunaina photo
+            showPopup(sunainaPhotos[i % sunainaPhotos.length], sunainaMessages[i % sunainaMessages.length]);
+          }
+        });
+
+        gameContainer.appendChild(hat);
+        hats.push(hat);
+      }
+    }
+
+    function startLevel(){
+      // Remove old hats if any
+      hats.forEach(hat => gameContainer.removeChild(hat));
+      hats = [];
+
+      // Reset UI
+      winMessage.style.display = 'none';
+      nextLevelBtn.style.display = 'none';
+
+      introScreen.style.display = 'none';
+
+      // Choose new random magical hat for replay
+      magicalHatIndex = Math.floor(Math.random() * totalHats);
+
+      createHats();
+      gameActive = true;
+      bgMusic.play();
+    }
+
+    // Show popup modal with image and message
+    function showPopup(imageSrc, message){
+      popupImage.src = imageSrc;
+      popupImage.alt = message;
+      popupMessage.textContent = message;
+      popupModal.style.display = 'block';
+      popupOverlay.style.display = 'block';
+    }
+
+    // Hide popup modal
+    function hidePopup(){
+      popupModal.style.display = 'none';
+      popupOverlay.style.display = 'none';
+    }
+
+    nextLevelBtn.addEventListener('click', () => {
+      window.location.href = "level5.html"; // Update this as needed
+    });
+
+    startBtn.addEventListener('click', () => {
+      startLevel();
+    });
+
+    popupCloseBtn.addEventListener('click', hidePopup);
+    popupOverlay.addEventListener('click', hidePopup);
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suzu vs The Hats | Level 1: Hat Heist</title>
+  <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="png" href="icon.png" />
+
+  <style>
+    /* Centered Level Popup */
+    #level-popup {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 182, 193, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999; /* ensures it's above everything */
+      text-align: center;
+    }
+
+    #level-popup h2 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0 var(--accent-color);
+    }
+
+    #level-popup p {
+      color: var(--dark-color);
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    #start-level-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 15px 40px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #start-level-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(to right, var(--secondary-color), var(--primary-color));
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="game-ui">
+      <div id="scoreboard">Hats: <span id="score">0</span>/3</div>
+      <div id="timer">Level 1: Hat Heist 🎩</div>
+    </div>
+
+    <div id="player"></div>
+
+    <!-- Hats -->
+    <div class="hat" style="top: 150px; left: 200px;"></div>
+    <div class="hat" style="top: 300px; left: 600px;"></div>
+    <div class="hat" style="top: 420px; left: 900px;"></div>
+
+    <!-- Level Instructions Popup -->
+    <div id="level-popup">
+      <div id="popup-content" style="
+        background: white;
+        padding: 30px 40px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 0 25px var(--shadow-color);
+        max-width: 500px;
+      ">
+        <h2>🎩 Level 1 – Hat Heist</h2>
+        <p>Collect 3 hats scattered around the field.<br>
+        Use the arrow keys to move Sunaina.<br>
+        </p>
+        <button id="start-level-btn">Start Level</button>
+      </div>
+    </div>
+
+    <!-- Win Message -->
+    <div id="win-message">
+      <h2>🎉 Level Cleared! 🎉</h2>
+      <p>You collected all the hats!</p>
+      <button id="next-level-btn">Next Level ➜</button>
+    </div>
+  </div>
+
+  <!-- Sounds -->
+  <audio id="bg-music" src="bg-music.mp3" loop></audio>
+  <audio id="collect-sound" src="collect.mp3"></audio>
+  <audio id="win-sound" src="win.mp3"></audio>
+
+  <script>
+    const player = document.getElementById("player");
+    const hats = document.querySelectorAll(".hat");
+    const scoreDisplay = document.getElementById("score");
+    const winMessage = document.getElementById("win-message");
+    const nextLevelBtn = document.getElementById("next-level-btn");
+    const levelPopup = document.getElementById("level-popup");
+    const startLevelBtn = document.getElementById("start-level-btn");
+
+    const bgMusic = document.getElementById("bg-music");
+    const collectSound = document.getElementById("collect-sound");
+    const winSound = document.getElementById("win-sound");
+
+    let score = 0;
+    let x = 570;
+    let y = 440;
+    const speed = 10;
+    const keys = {};
+    let gameStarted = false;
+
+    // Start level when button is clicked
+    startLevelBtn.addEventListener("click", () => {
+      levelPopup.style.display = "none";
+      gameStarted = true;
+      bgMusic.play();
+    });
+
+    // Movement
+    document.addEventListener("keydown", (e) => (keys[e.key] = true));
+    document.addEventListener("keyup", (e) => (keys[e.key] = false));
+
+    function movePlayer() {
+      if (!gameStarted) return;
+      if (keys["ArrowUp"]) y -= speed;
+      if (keys["ArrowDown"]) y += speed;
+      if (keys["ArrowLeft"]) x -= speed;
+      if (keys["ArrowRight"]) x += speed;
+
+      // Keep within bounds
+      const container = document.getElementById("game-container");
+      const maxX = container.offsetWidth - player.offsetWidth;
+      const maxY = container.offsetHeight - player.offsetHeight;
+      x = Math.max(0, Math.min(x, maxX));
+      y = Math.max(0, Math.min(y, maxY));
+
+      player.style.left = x + "px";
+      player.style.top = y + "px";
+    }
+
+    function checkCollisions() {
+      if (!gameStarted) return;
+      hats.forEach((hat) => {
+        if (!hat.classList.contains("collected")) {
+          const hatRect = hat.getBoundingClientRect();
+          const playerRect = player.getBoundingClientRect();
+          if (
+            playerRect.left < hatRect.right &&
+            playerRect.right > hatRect.left &&
+            playerRect.top < hatRect.bottom &&
+            playerRect.bottom > hatRect.top
+          ) {
+            hat.classList.add("collected");
+            collectSound.currentTime = 0;
+            collectSound.play();
+            score++;
+            scoreDisplay.textContent = score;
+
+            if (score === 3) {
+              bgMusic.pause();
+              winSound.play();
+              gameStarted = false;
+              winMessage.style.display = "block";
+            }
+          }
+        }
+      });
+    }
+
+    function gameLoop() {
+      movePlayer();
+      checkCollisions();
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+
+    nextLevelBtn.addEventListener("click", () => {
+      window.location.href = "level2.html";
+    });
+  </script>
+</body>
+</html>

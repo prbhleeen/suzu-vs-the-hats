@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Suzu vs The Hats | Level 3: Timer Alert!</title>
+  <link rel="icon" type="png" href="icon.png" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* #player {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background-image: url('sunaina.png');
+      background-size: cover;
+      background-position: center;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    } */
+
+    .hat {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-image: url('hat.png');
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+    }
+
+    #scoreboard, #timer {
+      position: absolute;
+      top: 8px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #800040;
+      text-shadow: 1px 1px #ffb6c1;
+      user-select: none;
+      z-index: 12;
+      padding: 0 10px;
+      background: #ffe0f0cc;
+      border-radius: 8px;
+    }
+    #scoreboard {
+      left: 10px;
+    }
+    #timer {
+      right: 10px;
+    }
+
+    #win-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      color: #d1006c;
+      text-shadow: 2px 2px #ffb6c1;
+      display: none;
+      z-index: 15;
+      background: white;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #ff4d94aa;
+      user-select: none;
+      text-align: center;
+    }
+
+    #next-level-btn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 20px;
+      background: #ff3d84;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #next-level-btn:hover {
+      background: #ff69b4;
+    }
+
+    /* #intro-screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #ffb6c1cc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      color: #800040;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #intro-screen h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.3em;
+      text-shadow: 2px 2px #ffa6c1;
+    }
+    #intro-screen p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5em;
+    } */
+    #start-btn {
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+      padding: 12px 30px;
+      font-size: 1.3rem;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      background: #ff3d84;
+    }
+    #start-btn:hover {
+      background: #ff69b4;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    
+    <div id="intro-screen">
+      <h1>Level 3: TIMER ALERT!</h1>
+      <p>Quickly collect 12 hats to win.</p>
+      <button id="start-btn">Start</button>
+    </div>
+
+    <div id="scoreboard">Hats Collected: 0 / 10</div>
+    <div id="timer">Time: 10s</div>
+    <div id="player"></div>
+    <div id="hats-container"></div>
+    <div id="win-message">
+      <div id="win-text"></div>
+      <button id="next-level-btn">Next Level</button>
+    </div>
+  </div>
+
+  <audio id="bg-music" loop>
+    <source src="bg-music.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const gameContainer = document.getElementById('game-container');
+    const gameWidth = gameContainer.clientWidth;
+    const gameHeight = gameContainer.clientHeight;
+
+    const player = document.getElementById('player');
+    const hatsContainer = document.getElementById('hats-container');
+    const scoreboard = document.getElementById('scoreboard');
+    const timerDisplay = document.getElementById('timer');
+    const winMessage = document.getElementById('win-message');
+    const winText = document.getElementById('win-text');
+    const nextLevelBtn = document.getElementById('next-level-btn');
+    const bgMusic = document.getElementById('bg-music');
+    const introScreen = document.getElementById('intro-screen');
+    const startBtn = document.getElementById('start-btn');
+
+    const playerSize = 80;
+    const hatSize = 50;
+    const hatsToCollect = 12;
+    const totalTime = 10; // seconds
+
+    let playerPos = {
+      x: (gameWidth - playerSize) / 2,
+      y: gameHeight - playerSize - 10
+    };
+
+    let keys = {};
+    let hats = [];
+    let hatsCollected = 0;
+    let timeLeft = totalTime;
+    let timerInterval;
+    let animationFrameId;
+
+    function updatePlayerPosition() {
+      player.style.left = playerPos.x + 'px';
+      player.style.top = playerPos.y + 'px';
+    }
+
+    function createHats() {
+      hatsContainer.innerHTML = '';
+      hats = [];
+      for (let i = 0; i < hatsToCollect; i++) {
+        const hat = document.createElement('div');
+        hat.classList.add('hat');
+        hat.style.left = Math.random() * (gameWidth - hatSize - 20) + 10 + 'px';
+        hat.style.top = Math.random() * (gameHeight - hatSize - 150) + 10 + 'px';
+        hatsContainer.appendChild(hat);
+        hats.push(hat);
+      }
+    }
+
+    window.addEventListener('keydown', e => { keys[e.key] = true; });
+    window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+    function movePlayer() {
+      if (keys['ArrowLeft'] && playerPos.x > 0) playerPos.x -= 8;
+      if (keys['ArrowRight'] && playerPos.x < gameWidth - playerSize) playerPos.x += 8;
+      if (keys['ArrowUp'] && playerPos.y > 0) playerPos.y -= 8;
+      if (keys['ArrowDown'] && playerPos.y < gameHeight - playerSize) playerPos.y += 8;
+    }
+
+    function isColliding(pos1, size1, pos2, size2) {
+      return !(
+        pos1.x > pos2.x + size2 ||
+        pos1.x + size1 < pos2.x ||
+        pos1.y > pos2.y + size2 ||
+        pos1.y + size1 < pos2.y
+      );
+    }
+
+    function checkHatCollection() {
+      for(let i = hats.length -1; i >= 0; i--) {
+        const hat = hats[i];
+        const hatPos = {
+          x: parseFloat(hat.style.left),
+          y: parseFloat(hat.style.top)
+        };
+        if (isColliding(playerPos, playerSize, hatPos, hatSize)) {
+          hatsContainer.removeChild(hat);
+          hats.splice(i,1);
+          hatsCollected++;
+          scoreboard.textContent = `Hats Collected: ${hatsCollected} / ${hatsToCollect}`;
+
+          if(hatsCollected === hatsToCollect){
+            endGame(true);
+          }
+        }
+      }
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      timerDisplay.textContent = `Time: ${timeLeft}s`;
+      if(timeLeft <= 0){
+        endGame(hatsCollected === hatsToCollect);
+      }
+    }
+
+    function gameLoop(){
+      movePlayer();
+      updatePlayerPosition();
+      checkHatCollection();
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function startLevel(){
+      hatsCollected = 0;
+      timeLeft = totalTime;
+      scoreboard.textContent = `Hats Collected: 0 / ${hatsToCollect}`;
+      timerDisplay.textContent = `Time: ${timeLeft}s`;
+      playerPos = {
+        x: (gameWidth - playerSize) / 2,
+        y: gameHeight - playerSize - 10
+      };
+      updatePlayerPosition();
+      createHats();
+      winMessage.style.display = 'none';
+      nextLevelBtn.style.display = 'none';
+      bgMusic.play();
+      introScreen.style.display = 'none';
+
+      timerInterval = setInterval(updateTimer, 1000);
+      gameLoop();
+    }
+
+    function endGame(won){
+      cancelAnimationFrame(animationFrameId);
+      clearInterval(timerInterval);
+      winMessage.style.display = 'block';
+      nextLevelBtn.style.display = 'inline-block';
+      bgMusic.pause();
+      if(won){
+        winText.textContent = "You Win! 🎉";
+      } else {
+        winText.textContent = "Time's up! Try Again!";
+      }
+    }
+
+    nextLevelBtn.addEventListener('click', () => {
+      window.location.href = "level4.html"; // Change to actual next level file
+    });
+
+    startBtn.addEventListener('click', () => {
+      startLevel();
+    });
+  </script>
+</body>
+</html>

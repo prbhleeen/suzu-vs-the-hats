@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Suzu vs The Hats | Level 2: Poopocalypse</title>
+  <link rel="icon" type="png" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .hat, .poop {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+    }
+    .hat {
+      background-image: url('hat.png');
+    }
+    .poop {
+      background-image: url('poop.png');
+      cursor: default;
+    }
+    #win-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      color: #d1006c;
+      text-shadow: 2px 2px #ffb6c1;
+      display: none;
+      z-index: 15;
+      background: white;
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #ff4d94aa;
+      user-select: none;
+      text-align: center;
+    }
+    #next-level-btn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 20px;
+      background: #ff3d84;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #next-level-btn:hover {
+      background: #ff69b4;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="intro-screen">
+      <h1>Level 2: POOPOCALYPSE!</h1>
+      <p>Catch the falling hats. Watch out for poop! Score 50 points to win.</p>
+      <button id="start-btn">Start</button>
+    </div>
+
+    <div id="scoreboard">Score: 0</div>
+    <div id="player"></div>
+    <div id="hats-container"></div>
+    <div id="win-message">
+      You Win! 🎉<br />
+      <button id="next-level-btn">Next Level</button>
+    </div>
+  </div>
+
+  <audio id="bg-music" autoplay>
+    <source src="bg-music.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const gameContainer = document.getElementById('game-container');
+    const gameWidth = gameContainer.clientWidth;
+    const gameHeight = gameContainer.clientHeight;
+
+    const player = document.getElementById('player');
+    const hatsContainer = document.getElementById('hats-container');
+    const scoreboard = document.getElementById('scoreboard');
+    const winMessage = document.getElementById('win-message');
+    const nextLevelBtn = document.getElementById('next-level-btn');
+    const bgMusic = document.getElementById('bg-music');
+
+    const playerSize = 80;
+    const itemSize = 40;
+
+    let score = 0;
+    const hatsPoints = 20;
+    const poopPoints = -5;
+    const scoreToWin = 50;
+
+    let playerPos = {
+      x: (gameWidth - playerSize) / 2,
+      y: gameHeight - playerSize - 10
+    };
+
+    let keys = {};
+    let fallingItems = [];
+    let spawnInterval;
+
+    function updatePlayerPosition() {
+      player.style.left = playerPos.x + 'px';
+      player.style.top = playerPos.y + 'px';
+    }
+
+    window.addEventListener('keydown', e => { keys[e.key] = true; });
+    window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+    function movePlayer() {
+      if (keys['ArrowLeft'] && playerPos.x > 0) playerPos.x -= 8;
+      if (keys['ArrowRight'] && playerPos.x < gameWidth - playerSize) playerPos.x += 8;
+    }
+
+    function createFallingItem() {
+      const item = document.createElement('div');
+      const isHat = Math.random() < 0.5; // ~55% hats, ~45% poop
+      item.classList.add(isHat ? 'hat' : 'poop');
+      item.style.left = Math.random() * (gameWidth - itemSize) + 'px';
+      item.style.top = '-50px';
+      hatsContainer.appendChild(item);
+      fallingItems.push({ element: item, isHat, y: -50, speed: 2 + Math.random() * 3 });
+    }
+
+    function moveFallingItems() {
+      for (let i = fallingItems.length - 1; i >= 0; i--) {
+        const obj = fallingItems[i];
+        obj.y += obj.speed;
+        obj.element.style.top = obj.y + 'px';
+
+        if (obj.y > gameHeight) {
+          hatsContainer.removeChild(obj.element);
+          fallingItems.splice(i, 1);
+          continue;
+        }
+
+        if (isColliding(playerPos, playerSize, {x: parseFloat(obj.element.style.left), y: obj.y}, itemSize)) {
+          score += obj.isHat ? hatsPoints : poopPoints;
+          if (score < 0) score = 0;
+          scoreboard.textContent = `Score: ${score}`;
+
+          hatsContainer.removeChild(obj.element);
+          fallingItems.splice(i, 1);
+
+          if (score >= scoreToWin) {
+            winGame();
+          }
+        }
+      }
+    }
+
+    function isColliding(pos1, size1, pos2, size2) {
+      return !(
+        pos1.x > pos2.x + size2 ||
+        pos1.x + size1 < pos2.x ||
+        pos1.y > pos2.y + size2 ||
+        pos1.y + size1 < pos2.y
+      );
+    }
+
+    function gameLoop() {
+      movePlayer();
+      updatePlayerPosition();
+      moveFallingItems();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startLevel() {
+      score = 0;
+      scoreboard.textContent = 'Score: 0';
+      playerPos = {
+        x: (gameWidth - playerSize) / 2,
+        y: gameHeight - playerSize - 10
+      };
+      updatePlayerPosition();
+      hatsContainer.innerHTML = '';
+      fallingItems = [];
+      winMessage.style.display = 'none';
+      nextLevelBtn.style.display = 'none';
+      bgMusic.play();
+      spawnInterval = setInterval(createFallingItem, 800);
+      gameLoop();
+    }
+
+    function winGame() {
+      winMessage.style.display = 'block';
+      nextLevelBtn.style.display = 'inline-block';
+      bgMusic.pause();
+      clearInterval(spawnInterval);
+    }
+
+    nextLevelBtn.addEventListener('click', () => {
+      window.location.href = "level3.html";
+    });
+
+    // Start on button click
+    const startBtn = document.getElementById('start-btn');
+    const introScreen = document.getElementById('intro-screen');
+
+    startBtn.addEventListener('click', () => {
+      introScreen.style.display = 'none';
+      startLevel();
+    });
+  </script>
+</body>
+</html>

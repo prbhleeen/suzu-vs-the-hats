@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suzu vs The Hats | Level 7: Find the Right Key</title>
+    <link rel="icon" type="png" href="icon.png" />
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fce4ec;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.8rem;
+            color: #800040;
+        }
+
+        #game-area {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 900px;
+            margin-top: 90px;
+        }
+
+        #keys-box {
+            display: flex;
+            flex-wrap: wrap;
+            width: 250px;
+            justify-content: center;
+            gap: 50px;
+            padding: 70px;
+            border: 3px dashed #ff69b4;
+            border-radius: 12px;
+            background: #fff0f5;
+            height: 150px;
+        }
+
+        #keys-box img {
+            width: auto;
+            height: 60px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        #keys-box img:hover {
+            transform: scale(1.2);
+        }
+
+        #door {
+            width:300px;
+            height: 300px;
+        }
+
+        .clickable-key {
+            cursor: pointer;
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            vertical-align: middle;
+        }
+
+        #message {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            color: #9c27b0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>
+        Think out of the box and find the right <img src="rightkey.png" class="clickable-key" id="heading-key" alt="Right Key">
+        to the door.
+    </h1>
+
+    <div id="game-area">
+        <div id="keys-box">
+            <img src="key1.png" class="fake-key" alt="Key 1">
+            <img src="key2.png" class="fake-key" alt="Key 2">
+            <img src="key3.png" class="fake-key" alt="Key 3">
+            <img src="key4.png" class="fake-key" alt="Key 4">
+            <img src="key5.png" class="fake-key" alt="Key 5">
+        </div>
+
+        <img src="door.png" id="door" alt="Door">
+    </div>
+
+    <div id="message"></div>
+
+    <!-- Audio -->
+    <audio id="bg-music" src="bg-music.mp3" loop></audio>
+    <audio id="wrong-sound" src="wrong.mp3"></audio>
+    <audio id="win-sound" src="win.mp3"></audio>
+
+    <script>
+        const bgMusic = document.getElementById('bg-music');
+        const wrongSound = document.getElementById('wrong-sound');
+        const winSound = document.getElementById('win-sound');
+        const headingKey = document.getElementById('heading-key');
+        const fakeKeys = document.querySelectorAll('.fake-key');
+        const message = document.getElementById('message');
+
+        // Start background music automatically
+        window.addEventListener('load', () => {
+            bgMusic.volume = 0.3;
+            bgMusic.play();
+        });
+
+        // Click on heading key -> win
+        headingKey.addEventListener('click', () => {
+            winSound.play();
+            message.textContent = "🎉 You found the right key! The door is unlocked!";
+            headingKey.style.transform = "scale(1.5)";
+            setTimeout(() => {
+                window.location.href = "level8.html"; // Proceed to next level
+            }, 1500);
+        });
+
+        // Click on fake keys -> play wrong sound
+        fakeKeys.forEach(key => {
+            key.addEventListener('click', () => {
+                wrongSound.currentTime = 0;
+                wrongSound.play();
+                message.textContent = "Oops! This key doesn't fit. Try another!";
+            });
+        });
+    </script>
+</body>
+
+</html>
