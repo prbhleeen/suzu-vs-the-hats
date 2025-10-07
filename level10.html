@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suzu vs The Hats | Level 10: Find the Real Sunaina</title>
+<link rel="icon" type="png" href="icon.png" />
+<style>
+body {
+    margin: 0; font-family: Arial, sans-serif;
+    background: #fff0f5; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; height: 100vh;
+    overflow: hidden; text-align: center;
+    color: #800040;
+}
+#intro, #photo-selection, #camera-section, #finale { display: none; }
+img.sunaina-img {
+    width: 180px; height: 180px; margin: 20px;
+    border-radius: 12px; cursor: pointer; transition: transform 0.2s;
+}
+img.sunaina-img:hover { transform: scale(1.1); }
+button { 
+    font-size: 1.2rem; padding: 12px 25px; margin-top: 20px;
+    border: none; border-radius: 50px; background: #ff3d84; color: white;
+    cursor: pointer; transition: transform 0.2s;
+}
+button:hover { transform: scale(1.05); background: #ff69b4; }
+#message { font-size: 1.5rem; margin-top: 20px; }
+#finale h1 { font-size: 3rem; color: #ff4081; margin: 0; }
+canvas { position: fixed; top:0; left:0; pointer-events:none; }
+</style>
+</head>
+<body>
+
+<div id="intro">
+    <h1 id="typewriter"></h1>
+</div>
+
+<div id="photo-selection">
+    <h2>Choose carefully!</h2>
+    <div>
+        <img src="sunaina1.png" class="sunaina-img" data-correct="false">
+        <img src="sunaina2.png" class="sunaina-img" data-correct="false">
+        <img src="sunaina3.png" class="sunaina-img" data-correct="true">
+    </div>
+    <div id="message"></div>
+</div>
+
+<div id="camera-section">
+    <h2>This is the real Sunaina!</h2>
+    <video id="camera" autoplay playsinline width="360" height="270" style="border-radius:12px;"></video><br>
+    <button id="show-finale">Click here</button>
+</div>
+
+<div id="finale">
+    <h1>🎉 HAPPY 21st BIRTHDAY SUNAINAA!!! 🎀</h1>
+</div>
+
+<!-- Audio -->
+<audio id="suspense" src="suspense.mp3"></audio>
+<audio id="wrong" src="wrong.mp3"></audio>
+<audio id="bday" src="bday.mp3"></audio>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// --- Typewriter Intro ---
+const suspense = document.getElementById('suspense');
+const intro = document.getElementById('intro');
+const typewriter = document.getElementById('typewriter');
+const photoSelection = document.getElementById('photo-selection');
+
+const introText = ["NOW THE ULTIMATE LEVEL: ", "FIND THE REAL SUNAINA"];
+let charIndex = 0, lineIndex = 0;
+
+intro.style.display = "block";
+suspense.volume = 0.5;
+suspense.play();
+
+function typeWriter() {
+    if(lineIndex < introText.length){
+        if(charIndex < introText[lineIndex].length){
+            typewriter.textContent += introText[lineIndex][charIndex];
+            charIndex++;
+            setTimeout(typeWriter, 100);
+        } else {
+            charIndex = 0;
+            lineIndex++;
+            typewriter.textContent += "\n";
+            setTimeout(typeWriter, 500);
+        }
+    } else {
+        setTimeout(()=> {
+            intro.style.display = "none";
+            photoSelection.style.display = "block";
+        }, 500);
+    }
+}
+typeWriter();
+
+// --- Photo Selection ---
+const wrongSound = document.getElementById('wrong');
+const message = document.getElementById('message');
+const images = document.querySelectorAll('.sunaina-img');
+let remainingChoices = 2; // first wrong choice
+
+images.forEach(img => {
+    img.addEventListener('click', ()=>{
+        if(img.dataset.correct === "true"){
+            photoSelection.style.display = "none";
+            showCamera();
+        } else {
+            wrongSound.currentTime=0;
+            wrongSound.play();
+            message.textContent = `No. ${remainingChoices} choices left.`;
+            remainingChoices--;
+            if(remainingChoices<0) message.textContent = "NO!";
+        }
+    });
+});
+
+// --- Camera Section ---
+const cameraSection = document.getElementById('camera-section');
+const camera = document.getElementById('camera');
+const showFinaleBtn = document.getElementById('show-finale');
+
+function showCamera(){
+    cameraSection.style.display = "block";
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    .then(stream => camera.srcObject = stream)
+    .catch(err => alert("Camera access denied!"));
+}
+
+showFinaleBtn.addEventListener('click', ()=>{
+    cameraSection.style.display="none";
+    showFinale();
+});
+
+// --- Finale ---
+const finale = document.getElementById('finale');
+const bdaySound = document.getElementById('bday');
+const confettiCanvas = document.getElementById('confetti');
+const ctx = confettiCanvas.getContext('2d');
+confettiCanvas.width = window.innerWidth;
+confettiCanvas.height = window.innerHeight;
+
+function showFinale(){
+    finale.style.display="block";
+    bdaySound.play();
+    startConfetti();
+}
+
+// --- Simple Confetti ---
+let confettiParticles = [];
+for(let i=0;i<150;i++){
+    confettiParticles.push({
+        x: Math.random()*window.innerWidth,
+        y: Math.random()*window.innerHeight,
+        r: Math.random()*6+4,
+        d: Math.random()*150,
+        color: `hsl(${Math.random()*360},100%,50%)`,
+        tilt: Math.floor(Math.random()*10)-10
+    });
+}
+function drawConfetti(){
+    ctx.clearRect(0,0,window.innerWidth, window.innerHeight);
+    confettiParticles.forEach(p=>{
+        ctx.beginPath();
+        ctx.moveTo(p.x + p.tilt + p.r/2, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.r);
+        ctx.strokeStyle=p.color;
+        ctx.lineWidth = p.r/2;
+        ctx.stroke();
+        p.y += Math.cos(0.01)*2 + 1 + p.d/100;
+        p.x += Math.sin(0.01);
+        if(p.y > window.innerHeight){ p.x = Math.random()*window.innerWidth; p.y = -10; }
+    });
+    requestAnimationFrame(drawConfetti);
+}
+function startConfetti(){ drawConfetti(); }
+</script>
+
+</body>
+</html>

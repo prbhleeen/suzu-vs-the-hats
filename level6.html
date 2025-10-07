@@ -78,7 +78,7 @@ body {
 
     <div id="intro-screen" class="modal">
         <h1>Level 6: Reverse Controls Madness!</h1>
-        <p>Arrow keys reverse every 10 seconds! Collect all 10 hats to win!</p>
+        <p>Arrow keys reverse every 10 seconds! Collect all 10 hats to win! There may be fake hats. 😈</p>
         <button id="start-btn">Start Challenge</button>
     </div>
 
@@ -132,27 +132,33 @@ let state = {};
 let controlsReversed = false;
 
 function setupGame() {
-    gameContainer.style.width = `${MAZE_COLS*CELL_SIZE}px`;
-    gameContainer.style.height = `${MAZE_ROWS*CELL_SIZE}px`;
+    gameContainer.style.width = `${MAZE_COLS * CELL_SIZE}px`;
+    gameContainer.style.height = `${MAZE_ROWS * CELL_SIZE}px`;
     drawMaze();
 
     const emptyCells = [];
-    for (let y=0; y<MAZE_ROWS; y++) {
-        for (let x=0; x<MAZE_COLS; x++) {
-            if (mazeLayout[y][x] === 0) emptyCells.push({x,y});
+    for (let y = 0; y < MAZE_ROWS; y++) {
+        for (let x = 0; x < MAZE_COLS; x++) {
+            if (mazeLayout[y][x] === 0) emptyCells.push({ x, y });
         }
     }
     emptyCells.sort(() => Math.random() - 0.5);
 
     state = {
-        player: { x:CELL_SIZE*1.5, y:CELL_SIZE*1.5, size:CELL_SIZE*0.8 },
-        keys:{}, items:[], hatsCollected:0, timeLeft:GAME_TIME_SECONDS,
-        gameActive:false, gameOver:false, animationFrameId:null, timerInterval:null
+        player: { x: CELL_SIZE * 1.5, y: CELL_SIZE * 1.5, size: CELL_SIZE * 0.8 },
+        keys: {},
+        items: [],
+        hatsCollected: 0,
+        timeLeft: GAME_TIME_SECONDS,
+        gameActive: false,
+        gameOver: false,
+        animationFrameId: null,
+        timerInterval: null
     };
 
-    for (let i=0; i<TOTAL_HATS; i++) {
+    for (let i = 0; i < TOTAL_HATS; i++) {
         const cell = emptyCells.pop();
-        if (cell) createItem(cell.x, cell.y, 'hat', '🥳');
+        if (cell) createItem(cell.x, cell.y, 'hat');
     }
 
     renderPlayer();
@@ -161,37 +167,40 @@ function setupGame() {
 
 function drawMaze() {
     mazeContainer.innerHTML = '';
-    for (let y=0; y<MAZE_ROWS; y++) {
-        for (let x=0; x<MAZE_COLS; x++) {
+    for (let y = 0; y < MAZE_ROWS; y++) {
+        for (let x = 0; x < MAZE_COLS; x++) {
             if (mazeLayout[y][x] === 1) {
                 const wall = document.createElement('div');
                 wall.className = 'wall';
-                wall.style.width = wall.style.height = CELL_SIZE+'px';
-                wall.style.left = x*CELL_SIZE+'px';
-                wall.style.top = y*CELL_SIZE+'px';
+                wall.style.width = wall.style.height = CELL_SIZE + 'px';
+                wall.style.left = x * CELL_SIZE + 'px';
+                wall.style.top = y * CELL_SIZE + 'px';
                 mazeContainer.appendChild(wall);
             }
         }
     }
 }
 
-function createItem(gridX, gridY, type, emoji) {
-    const item = document.createElement('div');
+function createItem(gridX, gridY, type) {
+    const item = document.createElement('img');
+    item.src = 'hat.png'; // use your image here
     item.className = 'item visible';
-    item.textContent = emoji;
-    item.style.width = item.style.height = CELL_SIZE+'px';
-    item.style.left = gridX*CELL_SIZE+'px';
-    item.style.top = gridY*CELL_SIZE+'px';
+    item.style.width = item.style.height = CELL_SIZE * 0.8 + 'px';
+    item.style.left = gridX * CELL_SIZE + CELL_SIZE * 0.1 + 'px';
+    item.style.top = gridY * CELL_SIZE + CELL_SIZE * 0.1 + 'px';
     itemsContainer.appendChild(item);
     state.items.push({
-        element:item, x:gridX*CELL_SIZE+CELL_SIZE/2,
-        y:gridY*CELL_SIZE+CELL_SIZE/2, size:CELL_SIZE*0.8,
-        type:type, collected:false
+        element: item,
+        x: gridX * CELL_SIZE + CELL_SIZE / 2,
+        y: gridY * CELL_SIZE + CELL_SIZE / 2,
+        size: CELL_SIZE * 0.8,
+        type: type,
+        collected: false
     });
 }
 
 function gameLoop() {
-    if(!state.gameActive) return;
+    if (!state.gameActive) return;
     movePlayer();
     checkItemCollision();
     renderPlayer();
@@ -199,107 +208,117 @@ function gameLoop() {
 }
 
 function movePlayer() {
-    const {player, keys} = state;
+    const { player, keys } = state;
     let nextX = player.x, nextY = player.y;
     let speed = PLAYER_SPEED;
-    if(controlsReversed) speed*=-1;
+    if (controlsReversed) speed *= -1;
 
-    if(keys['ArrowUp']) nextY -= speed;
-    if(keys['ArrowDown']) nextY += speed;
-    if(keys['ArrowLeft']) nextX -= speed;
-    if(keys['ArrowRight']) nextX += speed;
+    if (keys['ArrowUp']) nextY -= speed;
+    if (keys['ArrowDown']) nextY += speed;
+    if (keys['ArrowLeft']) nextX -= speed;
+    if (keys['ArrowRight']) nextX += speed;
 
-    if(!isCollidingWithWall(nextX, player.y, player.size)) player.x = nextX;
-    if(!isCollidingWithWall(player.x, nextY, player.size)) player.y = nextY;
+    if (!isCollidingWithWall(nextX, player.y, player.size)) player.x = nextX;
+    if (!isCollidingWithWall(player.x, nextY, player.size)) player.y = nextY;
 }
 
-function isCollidingWithWall(x,y,size){
-    const half = size/2;
+function isCollidingWithWall(x, y, size) {
+    const half = size / 2;
     const corners = [
-        {x:x-half,y:y-half},{x:x+half,y:y-half},
-        {x:x-half,y:y+half},{x:x+half,y:y+half}
+        { x: x - half, y: y - half },
+        { x: x + half, y: y - half },
+        { x: x - half, y: y + half },
+        { x: x + half, y: y + half }
     ];
-    for(const c of corners){
-        const gridX = Math.floor(c.x/CELL_SIZE);
-        const gridY = Math.floor(c.y/CELL_SIZE);
-        if(gridX<0||gridX>=MAZE_COLS||gridY<0||gridY>=MAZE_ROWS||mazeLayout[gridY][gridX]===1) return true;
+    for (const c of corners) {
+        const gridX = Math.floor(c.x / CELL_SIZE);
+        const gridY = Math.floor(c.y / CELL_SIZE);
+        if (
+            gridX < 0 ||
+            gridX >= MAZE_COLS ||
+            gridY < 0 ||
+            gridY >= MAZE_ROWS ||
+            mazeLayout[gridY][gridX] === 1
+        )
+            return true;
     }
     return false;
 }
 
 function renderPlayer() {
     const p = state.player;
-    playerElement.style.width = playerElement.style.height = p.size+'px';
-    playerElement.style.transform = `translate(${p.x - p.size/2}px,${p.y - p.size/2}px)`;
+    playerElement.style.width = playerElement.style.height = p.size + 'px';
+    playerElement.style.transform = `translate(${p.x - p.size / 2}px, ${p.y - p.size / 2}px)`;
 }
 
 function checkItemCollision() {
-    const playerCenter = {x:state.player.x,y:state.player.y};
-    for(const item of state.items){
-        if(!item.collected){
+    const playerCenter = { x: state.player.x, y: state.player.y };
+    for (const item of state.items) {
+        if (!item.collected) {
             const dx = playerCenter.x - item.x;
             const dy = playerCenter.y - item.y;
-            if(Math.sqrt(dx*dx+dy*dy) < (state.player.size/2 + item.size/2)){
+            if (Math.sqrt(dx * dx + dy * dy) < (state.player.size / 2 + item.size / 2) * 0.9) {
                 handleItemCollection(item);
             }
         }
     }
 }
 
-function handleItemCollection(item){
-    item.collected=true;
+function handleItemCollection(item) {
+    item.collected = true;
     item.element.classList.add('collected');
-    if(item.type==='hat'){
+    setTimeout(() => item.element.remove(), 300);
+    if (item.type === 'hat') {
         state.hatsCollected++;
-        if(state.hatsCollected===TOTAL_HATS) endGame(true);
+        if (state.hatsCollected === TOTAL_HATS) endGame(true);
     }
     updateUI();
 }
 
-function startGame(){
+function startGame() {
     setupGame();
     introScreen.classList.add('hidden');
-    state.gameActive=true;
-    state.timerInterval = setInterval(()=>{
+    state.gameActive = true;
+    state.timerInterval = setInterval(() => {
         state.timeLeft--;
         updateUI();
-        if(state.timeLeft<=0) endGame(false);
-    },1000);
+        if (state.timeLeft <= 0) endGame(false);
+    }, 1000);
 
-    // Reverse controls toggle
-    setInterval(()=> controlsReversed = !controlsReversed,10000);
+    setInterval(() => (controlsReversed = !controlsReversed), 10000);
     gameLoop();
 }
 
-function endGame(win){
-    state.gameActive=false;
+function endGame(win) {
+    state.gameActive = false;
     clearInterval(state.timerInterval);
     cancelAnimationFrame(state.animationFrameId);
-    if(win){
-        endTitle.textContent="You Won! 🎉";
-        endMessage.textContent="Amazing! You collected all the hats!";
-    }else{
-        endTitle.textContent="Time's Up! 💔";
-        endMessage.textContent="Better luck next time!";
+    if (win) {
+        endTitle.textContent = 'You Won! 🎉';
+        endMessage.textContent = 'Amazing! You collected all the hats!';
+    } else {
+        endTitle.textContent = "Time's Up! 💔";
+        endMessage.textContent = 'Better luck next time!';
     }
     endScreen.classList.remove('hidden');
 }
 
-function updateUI(){
+function updateUI() {
     scoreboard.textContent = `Hats: ${state.hatsCollected}/${TOTAL_HATS}`;
     timerDisplay.textContent = `Time: ${state.timeLeft}`;
 }
 
-window.addEventListener('keydown', e=>{
-    state.keys[e.key]=true;
-    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+window.addEventListener('keydown', e => {
+    state.keys[e.key] = true;
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
 });
-window.addEventListener('keyup', e=> state.keys[e.key]=false );
+window.addEventListener('keyup', e => (state.keys[e.key] = false));
 
 startBtn.addEventListener('click', startGame);
-nextLevelBtn.addEventListener('click', ()=> window.location.href='level7.html');
+nextLevelBtn.addEventListener('click', () => (window.location.href = 'level7.html'));
 
 setupGame();
+</script>
 </script>
 </body>
 </html>

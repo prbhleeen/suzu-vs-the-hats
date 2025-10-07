@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Suzu vs The Hats | Level 9: The Upside Down</title>
+<link rel="icon" type="image/png" href="icon.png" />
+<style>
+  :root{
+    --bg:#0b0014;
+    --accent:#ff66cc;
+    --ui:#ffe6f5;
+  }
+  html,body{height:100%;margin:0}
+  body{
+    background: radial-gradient(circle at 10% 10%, #220022 0%, var(--bg) 40%);
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: white;
+    overflow: hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* INTRO overlay (upside-down content) */
+  #intro-overlay{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(0,0,0,0.45);
+    z-index:1000;
+  }
+  .intro-card{
+    width: 480px;
+    max-width:90%;
+    padding: 28px;
+    background: linear-gradient(180deg, #2a002a 0%, #1b001b 100%);
+    border-radius: 14px;
+    border: 3px solid rgba(255,102,204,0.12);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+
+    /* this rotates the instruction upside-down */
+    transform: rotate(180deg);
+  }
+  .intro-card h2{
+    margin:0;
+    color: var(--accent);
+    font-size:1.45rem;
+    text-align:center;
+    text-shadow: 0 2px 10px rgba(255,102,204,0.15);
+  }
+  .intro-card p{
+    margin:0;
+    color: #ffd8f4;
+    text-align:center;
+    line-height:1.4;
+    opacity:0.95;
+  }
+  #start-upside{
+    margin-top:8px;
+    background: linear-gradient(90deg,#ff3d84,#ff77cc);
+    border:none;
+    color:white;
+    padding:12px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    font-weight:700;
+    transform: rotate(180deg); /* button text upside-down as well */
+    box-shadow: 0 8px 30px rgba(255,51,136,0.16);
+  }
+  #start-upside:active{ transform: rotate(180deg) scale(0.98) }
+
+  /* GAME area (everything inside rotated) */
+  #game{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    /* rotate the world - everything inside looks upside down */
+    transform: rotate(180deg);
+    touch-action: none;
+  }
+
+  /* Player */
+  #player{
+    position:absolute;
+    width:72px;
+    height:72px;
+    background-image:url('sunaina.png');
+    background-size:cover;
+    background-position:center;
+    border-radius:50%;
+    box-shadow: 0 0 18px rgba(255,102,204,0.25);
+    will-change: transform;
+  }
+
+  /* Hats */
+  .hat{
+    position:absolute;
+    width:56px;
+    height:56px;
+    background-image:url('hat.png');
+    background-size:cover;
+    background-position:center;
+    cursor: default;
+    transition: transform 0.18s ease;
+  }
+  .hat:hover{ transform: scale(1.08); }
+
+  /* Score (inside rotated game so it appears upside-down) */
+  #score {
+    position:absolute;
+    top:12px;
+    left:12px;
+    z-index:50;
+    background: rgba(0,0,0,0.25);
+    padding:8px 12px;
+    border-radius:999px;
+    font-weight:700;
+    color:var(--ui);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    text-shadow: 0 4px 18px rgba(255,102,204,0.06);
+  }
+
+  /* Win screen (also inside game so it's upside-down) */
+  #win-screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(0,0,0,0.5);
+    z-index:999;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  #win-screen.visible{ opacity:1; pointer-events:auto; }
+  .win-card{
+    background: linear-gradient(180deg,#2a002a,#190019);
+    border-radius:12px;
+    padding:28px;
+    text-align:center;
+    color:var(--ui);
+    border: 2px solid rgba(255,102,204,0.12);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+  .win-card h1{ margin:0 0 10px 0; color:var(--accent) }
+  .win-card button{
+    margin-top:12px;
+    background: linear-gradient(90deg,#ff3d84,#ff77cc);
+    border:none; color:white;
+    padding:10px 20px; border-radius:999px; cursor:pointer; font-weight:700;
+  }
+
+  /* small note for mobile */
+  @media (max-width:600px){
+    .intro-card{ padding:18px }
+    #player{ width:56px; height:56px }
+    .hat{ width:44px; height:44px }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Intro overlay (content intentionally rotated 180deg so it is upside-down) -->
+  <div id="intro-overlay" aria-hidden="false">
+    <div class="intro-card" role="dialog" aria-label="Upside down instruction">
+      <h2>THIS LEVEL IS UPSIDE DOWN</h2>
+      <p>All visuals and UI will be flipped. Controls are reversed — think before you press!</p>
+      <button id="start-upside">ǝɯɐƃ ʇɹɐʇS</button>
+      <!-- the button label is just rotated; you asked the text to be upside-down; rotating suffices -->
+    </div>
+  </div>
+
+  <!-- Game world (everything here will appear upside-down on screen) -->
+  <div id="game" aria-hidden="true">
+    <div id="score">🎩 Hats: 0 / 8</div>
+    <div id="player" aria-hidden="true"></div>
+    <!-- hats will be inserted here -->
+    <div id="win-screen" role="dialog" aria-hidden="true">
+      <div class="win-card">
+        <h1>🎉 You survived the Upside Down!</h1>
+        <p>Nice reflexes — ready for the next madness?</p>
+        <button id="next-level">Next Level</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio (start when user clicks start button) -->
+  <audio id="bg-music" src="bg-music.mp3" loop preload="auto"></audio>
+  <audio id="collect-sound" src="collect.mp3" preload="auto"></audio>
+  <audio id="win-sound" src="win.mp3" preload="auto"></audio>
+
+<script>
+(() => {
+  const TOTAL = 8;
+  const game = document.getElementById('game');
+  const playerEl = document.getElementById('player');
+  const scoreEl = document.getElementById('score');
+  const intro = document.getElementById('intro-overlay');
+  const startBtn = document.getElementById('start-upside');
+  const winScreen = document.getElementById('win-screen');
+  const nextBtn = document.getElementById('next-level');
+
+  const bg = document.getElementById('bg-music');
+  const collectS = document.getElementById('collect-sound');
+  const winS = document.getElementById('win-sound');
+
+  let hatsCollected = 0;
+  let hats = [];
+  let state = { x: 100, y: 100, speed: 6, started: false };
+  const keys = {};
+
+  // position player initially center
+  function placePlayerCenter(){
+    const w = game.clientWidth, h = game.clientHeight;
+    state.x = Math.floor(w/2 - 36);
+    state.y = Math.floor(h/2 - 36);
+    playerEl.style.left = state.x + 'px';
+    playerEl.style.top = state.y + 'px';
+  }
+
+  // spawn hats in open field, avoid edges
+  function spawnHats(){
+    hats = [];
+    const w = game.clientWidth, h = game.clientHeight;
+    for(let i=0;i<TOTAL;i++){
+      const el = document.createElement('div');
+      el.className = 'hat';
+      // pick positions leaving a margin so hats are reachable
+      const left = Math.floor(Math.random() * (w - 120)) + 60;
+      const top = Math.floor(Math.random() * (h - 160)) + 80;
+      el.style.left = left + 'px';
+      el.style.top = top + 'px';
+      game.appendChild(el);
+      hats.push(el);
+    }
+  }
+
+  // starts the level (called via the upside-down start button)
+  function startLevel(){
+    // hide intro
+    intro.style.display = 'none';
+    game.setAttribute('aria-hidden','false');
+    // user gesture to start audio
+    bg.volume = 0.35;
+    bg.play().catch(()=>{ /* autoplay blocked — started by gesture */ });
+
+    // place player & hats
+    placePlayerCenter();
+    spawnHats();
+    state.started = true;
+    requestAnimationFrame(loop);
+  }
+
+  // collision detection: use bounding rects (works visually even when rotated)
+  function intersects(a,b){
+    return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+  }
+
+  function loop(){
+    if(!state.started) return;
+
+    // Normal DOM coordinate mapping (not inverted here) —
+    // because the entire game is visually rotated 180deg, this mapping produces reversed controls visually.
+    if(keys['ArrowUp'])    state.y -= state.speed;
+    if(keys['ArrowDown'])  state.y += state.speed;
+    if(keys['ArrowLeft'])  state.x -= state.speed;
+    if(keys['ArrowRight']) state.x += state.speed;
+
+    // clamp within game
+    const maxX = game.clientWidth - playerEl.offsetWidth;
+    const maxY = game.clientHeight - playerEl.offsetHeight;
+    state.x = Math.max(0, Math.min(maxX, state.x));
+    state.y = Math.max(0, Math.min(maxY, state.y));
+
+    playerEl.style.left = state.x + 'px';
+    playerEl.style.top = state.y + 'px';
+
+    // check hat collisions
+    const pr = playerEl.getBoundingClientRect();
+    for(let i = hats.length - 1; i >= 0; i--){
+      const h = hats[i];
+      if(!h) continue;
+      const hr = h.getBoundingClientRect();
+      if(intersects(pr, hr)){
+        // collect
+        collectS.currentTime = 0;
+        collectS.play().catch(()=>{});
+        hats.splice(i,1);
+        h.remove();
+        hatsCollected++;
+        scoreEl.textContent = `🎩 Hats: ${hatsCollected} / ${TOTAL}`;
+        if(hatsCollected >= TOTAL){
+          win();
+        }
+      }
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  function win(){
+    state.started = false;
+    try{ winS.play(); }catch(e){}
+    try{ bg.pause(); }catch(e){}
+    winScreen.classList.add('visible');
+  }
+
+  // keyboard handling (prevent page scroll)
+  window.addEventListener('keydown', e => {
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){
+      e.preventDefault();
+      keys[e.key] = true;
+    }
+  });
+  window.addEventListener('keyup', e => keys[e.key] = false);
+
+  // Start button (upside-down)
+  startBtn.addEventListener('click', startLevel);
+
+  // Next Level button
+  nextBtn.addEventListener('click', () => {
+    window.location.href = 'level10.html';
+  });
+
+  // handle resize so player/hats fit new size
+  window.addEventListener('resize', () => {
+    if(!state.started){
+      placePlayerCenter();
+    }
+  });
+
+  // initial setup
+  placePlayerCenter();
+  scoreEl.textContent = `🎩 Hats: ${hatsCollected} / ${TOTAL}`;
+
+})(); 
+</script>
+</body>
+</html>
